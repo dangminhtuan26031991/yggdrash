@@ -23,18 +23,14 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class BlockStore implements Store<Sha3Hash, BlockHusk> {
-    private static final Logger logger = LoggerFactory.getLogger(BlockStore.class);
-
-    private DbSource<byte[], byte[]> db;
-    private Map<Long, Sha3Hash> index = new HashMap<>();
+    private final DbSource<byte[], byte[]> db;
+    private final Map<Long, Sha3Hash> index = new HashMap<>();
 
     public BlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();

@@ -5,7 +5,7 @@ import org.spongycastle.util.encoders.Hex;
 
 public class TransactionSignature implements Cloneable {
 
-    private byte[] signature;
+    private final byte[] signature;
 
     public TransactionSignature(byte[] signature) {
         this.signature = signature;
@@ -17,10 +17,6 @@ public class TransactionSignature implements Cloneable {
 
     public TransactionSignature(Wallet wallet, byte[] headerHash) {
         this(wallet.signHashedData(headerHash));
-    }
-
-    public long length() {
-        return this.signature.length;
     }
 
     public byte[] getSignature() {

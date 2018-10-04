@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
 import io.yggdrash.core.Address;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.FailedOperationException;
@@ -34,8 +35,7 @@ import static io.yggdrash.contract.ContractTx.createYeedTx;
 
 public class NodeContractDemoClient {
 
-    private static Scanner scan = new Scanner(System.in);
-    private static Wallet wallet;
+    private static final Scanner scan = new Scanner(System.in);
     private static final String server = "10.10.10.100";
     private static final TransactionApi transactionApiLocal = new JsonRpcConfig().transactionApi();
     private static final TransactionApi transactionApiServer = new JsonRpcConfig().transactionApi(server);
@@ -43,6 +43,7 @@ public class NodeContractDemoClient {
     private static final ContractApi contractApiServer = new JsonRpcConfig().contractApi(server);
     private static final AccountApi accountApiLocal = new JsonRpcConfig().accountApi();
     private static final AccountApi accountApiServer = new JsonRpcConfig().accountApi(server);
+    private static Wallet wallet;
 
     public static void main(String[] args) throws Exception {
         while (true) {
@@ -134,8 +135,7 @@ public class NodeContractDemoClient {
         System.out.println("브랜치 아이디\n>");
         String branchId = scan.nextLine();
         try {
-            JsonObject qry = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+            JsonObject qry = ContractQry.createQuery(BranchId.STEM,
                     "view",
                     ContractQry.createParams("branchId", branchId));
 
@@ -186,10 +186,9 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void balance() throws Exception {
+    private static void balance() {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject qry = ContractQry.createQuery(
-                Hex.encodeHexString(TestUtils.YEED_CHAIN),
+        JsonObject qry = ContractQry.createQuery(BranchId.YEED,
                 "balanceOf",
                 ContractQry.createParams("address", scan.nextLine()));
 

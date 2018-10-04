@@ -18,11 +18,12 @@ import java.security.SignatureException;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TransactionHuskTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHuskTest.class);
-    private static Wallet wallet;
+    private static final Wallet wallet;
 
     private TransactionHusk txHusk;
 
@@ -133,16 +134,11 @@ public class TransactionHuskTest {
         log.debug("Test Transaction1: " + txHusk1.toString());
         log.debug("Test Transaction1 Address: " + txHusk1.getAddress());
 
-        if (txHusk1.verify()) {
-            log.debug("verify success");
-        } else {
-            assert false;
-        }
-
+        assertTrue(txHusk1.verify());
         assertArrayEquals(wallet.getAddress(), account.getAddress());
         assertArrayEquals(wallet.getAddress(), txHusk1.getAddress().getBytes());
 
-        byte[] hashedRawData = txHusk1.getHashForSignning().getBytes();
+        byte[] hashedRawData = txHusk1.getHashForSigning().getBytes();
         log.debug("hashedRawData: " + Hex.toHexString(hashedRawData));
 
         byte[] signatureBin = txHusk1.getInstance().getSignature().toByteArray();
