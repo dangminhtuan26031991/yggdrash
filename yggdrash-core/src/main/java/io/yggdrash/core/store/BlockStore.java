@@ -51,6 +51,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     }
 
     private void indexing() {
+        // TODO Index Size is too big
         try {
             List<byte[]> dataList = db.getAll();
             for (byte[] data : dataList) {
@@ -64,6 +65,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
 
     @Override
     public void put(Sha3Hash key, BlockHusk value) {
+        // TODO make Transaction index and add Meta information
         db.put(key.getBytes(), value.getData());
         index.put(value.getIndex(), key);
     }
