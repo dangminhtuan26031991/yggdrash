@@ -54,4 +54,17 @@ public class JsonUtil {
     public static JsonObject parseJsonObject(Reader json) {
         return (JsonObject) jsonParser.parse(json);
     }
+
+    public static <T> T generateJsonToClass(String jsonData, Class<T> valueTypeRef) {
+        if (jsonData == null) {
+            return null;
+        }
+        T object = null;
+        try {
+            object = mapper.readValue(jsonData, valueTypeRef);
+        } catch (IOException e) {
+            log.warn("convert fail string to class err={}", e);
+        }
+        return object;
+    }
 }

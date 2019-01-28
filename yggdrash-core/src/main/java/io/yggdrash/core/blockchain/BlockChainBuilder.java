@@ -25,6 +25,7 @@ import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
+import io.yggdrash.core.store.NonStateStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -41,6 +42,7 @@ public class BlockChainBuilder {
     private MetaStore metaStore;
     private BlockStore blockStore;
     private StateStore stateStore;
+    private NonStateStore nonStateStore;
     private TransactionReceiptStore transactionReceiptStore;
     private Runtime runtime;
 
@@ -96,6 +98,9 @@ public class BlockChainBuilder {
         if (stateStore == null) {
             stateStore = storeBuilder.buildStateStore(genesisBlock.getBranchId());
         }
+        if (nonStateStore == null) {
+            nonStateStore = storeBuilder.buildNonStateStore(genesisBlock.getBranchId());
+        }
         if (transactionReceiptStore == null) {
             transactionReceiptStore = storeBuilder.buildTransactionReciptStore(
                     genesisBlock.getBranchId());
@@ -111,6 +116,7 @@ public class BlockChainBuilder {
             // TODO change Transaction Recipt Store
             runtime = new Runtime(contract,
                     stateStore,
+                    nonStateStore,
                     transactionReceiptStore
 
             );

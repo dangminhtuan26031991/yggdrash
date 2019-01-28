@@ -22,12 +22,12 @@ message TransactionList {
 message Block {
     message Header {
         bytes chain = 1;
-        bytes version = 2;          // Version indicates message protocol version
+        bytes version = 2; // Version indicates message protocol version
         bytes type = 3;
-        bytes prevBlockHash = 4;    // The hash of the previous block header
-        bytes index = 5;            // The index in the blockchain
-        bytes timestamp = 6;        // google.protobuf.Timestamp timestamp ?
-        bytes merkleRoot = 7;       // The hash of the BlockBody, by MerkleTree
+        bytes prevBlockHash = 4; // The hash of the previous block header
+        bytes index = 5; // The index in the blockchain
+        bytes timestamp = 6; // google.protobuf.Timestamp timestamp ?
+        bytes merkleRoot = 7; // The hash of the BlockBody, by MerkleTree
         bytes bodyLength = 8;
     }
 
@@ -48,6 +48,46 @@ message Transaction {
     Header header = 1;
     bytes signature = 2;
     bytes body = 3;
+
+    int32 payloadType = 4;
+    oneof payloadBody {
+        TxCommon common = 5;
+        TxBonding bonding = 6;
+        TxDelegating delegating = 7;
+        TxUnStaking unStaking = 8;
+        TxRecover recover = 9;
+    }
+}
+
+message TxCommon {
+    string to = 1;
+    string amount = 2;
+    string input = 3;
+}
+
+message TxBonding {
+    string amount = 2;
+
+    string name = 3;
+    string desc = 4;
+    string url = 5;
+    string logoUrl = 6;
+    string lat = 7;
+    string lon = 8;
+}
+
+message TxDelegating {
+    string to = 1;
+    string amount = 2;
+}
+
+message TxUnStaking {
+    string to = 1;
+    string amount = 2;
+}
+
+message TxRecover {
+    string input = 1;
 }
 
 message RequestPeer {

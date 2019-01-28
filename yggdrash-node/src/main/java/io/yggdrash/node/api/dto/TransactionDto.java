@@ -21,10 +21,17 @@ import com.google.protobuf.ByteString;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.types.enumeration.TxPayloadTypeEnum;
+import io.yggdrash.core.types.tx.TxBonding;
+import io.yggdrash.core.types.tx.TxCommon;
+import io.yggdrash.core.types.tx.TxDelegating;
+import io.yggdrash.core.types.tx.TxRecover;
+import io.yggdrash.core.types.tx.TxUnStaking;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
 import java.util.List;
+import java.util.Map;
 
 public class TransactionDto {
 
@@ -35,6 +42,8 @@ public class TransactionDto {
     public String bodyHash;
     public long bodyLength;
     public String signature;
+    public TxPayloadTypeEnum payloadType;
+    public Map<String, Object> payload;
     public List body;
     public String author;
     public String txId;
@@ -49,12 +58,36 @@ public class TransactionDto {
                 .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(dto.bodyLength)))
                 .build();
 
-        Proto.Transaction tx = Proto.Transaction.newBuilder()
+        Proto.Transaction.Builder txBuilder = Proto.Transaction.newBuilder()
                 .setHeader(header)
                 .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
-                .setBody(ByteString.copyFromUtf8(JsonUtil.convertObjToString(dto.body)))
-                .build();
-        return new TransactionHusk(tx);
+                .setPayloadType(dto.payloadType.toValue())
+                .setBody(ByteString.copyFromUtf8(JsonUtil.convertObjToString(dto.body)));
+
+        String data = JsonUtil.convertObjToString(dto.payload);
+        switch (dto.payloadType) {
+            case COMMON:
+                TxCommon txCommon = JsonUtil.generateJsonToClass(data, TxCommon.class);
+                txCommon.mappingClassToProto(txBuilder);
+                break;
+            case BONDING:
+                TxBonding txBonding = JsonUtil.generateJsonToClass(data, TxBonding.class);
+                txBonding.mappingClassToProto(txBuilder);
+                break;
+            case DELEGATING:
+                TxDelegating txDelegating = JsonUtil.generateJsonToClass(data, TxDelegating.class);
+                txDelegating.mappingClassToProto(txBuilder);
+                break;
+            case UNSTAKING:
+                TxUnStaking txUnStaking = JsonUtil.generateJsonToClass(data, TxUnStaking.class);
+                txUnStaking.mappingClassToProto(txBuilder);
+                break;
+            case RECOVER:
+                TxRecover txRecover = JsonUtil.generateJsonToClass(data, TxRecover.class);
+                txRecover.mappingClassToProto(txBuilder);
+                break;
+        }
+        return new TransactionHusk(txBuilder.build());
     }
 
     public static TransactionDto createBy(TransactionHusk tx) {

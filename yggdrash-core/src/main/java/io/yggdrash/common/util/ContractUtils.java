@@ -16,8 +16,10 @@
 
 package io.yggdrash.common.util;
 
+import io.yggdrash.core.runtime.annotation.ContractNonStateStore;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -37,6 +39,9 @@ public class ContractUtils {
         return ContractUtils.contractFields(contract, ContractStateStore.class);
     }
 
+    public static List<Field> nonStateStore(Object contract) {
+        return ContractUtils.contractFields(contract, ContractNonStateStore.class);
+    }
 
     public static List<Field> contractFields(Object contract, Class<? extends Annotation> annotationClass) {
         List<Field> txReceipt = Arrays.stream(contract.getClass().getDeclaredFields())
@@ -46,11 +51,11 @@ public class ContractUtils {
     }
 
 
-    public static  Map<String, Method> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
+    public static Map<String, Method> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
         return Arrays.stream(contract.getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotationClass))
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toMap(m -> m.getName().toLowerCase(), m-> m));
+                .collect(Collectors.toMap(m -> m.getName().toLowerCase(), m -> m));
     }
 
 }

@@ -21,6 +21,7 @@ import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
+import io.yggdrash.core.store.NonStateStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -39,6 +40,7 @@ public class BlockExecutorTest {
                 new Runtime<>(
                         contract,
                         new StateStore<>(new HashMapDbSource()),
+                        new NonStateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
 

@@ -26,6 +26,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.StemContract;
+import io.yggdrash.core.store.NonStateStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -44,6 +45,7 @@ public class RuntimeTest {
                 new Runtime<>(
                         contract,
                         new StateStore<>(new HashMapDbSource()),
+                        new NonStateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
 
@@ -72,6 +74,7 @@ public class RuntimeTest {
                 new Runtime<>(
                         contract,
                         new StateStore<>(new HashMapDbSource()),
+                        new NonStateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource()));
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();

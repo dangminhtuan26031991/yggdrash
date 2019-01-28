@@ -30,9 +30,13 @@ import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.store.NonStateStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -42,13 +46,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Runtime<T> {
     protected static final Logger log = LoggerFactory.getLogger(Runtime.class);
 
     private StateStore<T> stateStore;
+    private NonStateStore nonStateStore;
     private TransactionReceiptStore txReceiptStore;
     private Contract<T> contract;
     private Map<String, Method> invokeMethod;
@@ -66,8 +69,10 @@ public class Runtime<T> {
     // TODO Runtime get multi Contract
     public Runtime(Contract<T> contract,
                    StateStore<T> stateStore,
+                   NonStateStore nonStateStore,
                    TransactionReceiptStore txReceiptStore) {
         this.stateStore = stateStore;
+        this.nonStateStore = nonStateStore;
         this.txReceiptStore = txReceiptStore;
         // init
         queryMethod = new Hashtable<>();
@@ -79,7 +84,7 @@ public class Runtime<T> {
         invokeMethod = getInvokeMethods();
         queryMethod = getQueryMethods();
         genesis = getGenesisMethod();
-        for(Field f : ContractUtils.txReceipt(contract)) {
+        for (Field f : ContractUtils.txReceipt(contract)) {
             transactionReceiptField = f;
             f.setAccessible(true);
         }
@@ -89,10 +94,20 @@ public class Runtime<T> {
         tmpTxStateStore = new TempStateStore(tmpBlockStateStore);
 
         // init state Store
-        for(Field f : ContractUtils.stateStore(contract)) {
+        for (Field f : ContractUtils.stateStore(contract)) {
             try {
                 f.setAccessible(true);
                 f.set(contract, tmpTxStateStore);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // init non-state Store
+        for (Field f : ContractUtils.nonStateStore(contract)) {
+            try {
+                f.setAccessible(true);
+                f.set(contract, nonStateStore);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -107,13 +122,13 @@ public class Runtime<T> {
         // - Index *(Height)
         // Map String
 
-        if(block.getIndex() == 0) {
+        if (block.getIndex() == 0) {
             // TODO first transaction is genesis
             // TODO genesis method don't call any more
         }
         Map<Sha3Hash, Boolean> result = new HashMap<>();
 
-        for(TransactionHusk tx: block.getBody()) {
+        for (TransactionHusk tx : block.getBody()) {
             TransactionReceipt txReceipt = new TransactionReceiptImpl(tx);
             // set Block ID
             txReceipt.setBlockId(block.getHash().toString());
@@ -140,7 +155,7 @@ public class Runtime<T> {
                         txReceipt.getTxId(),
                         txReceipt.getStatus()
                 );
-                for (JsonObject txLog: txReceipt.getTxLog()) {
+                for (JsonObject txLog : txReceipt.getTxLog()) {
                     log.info("{} {}", txReceipt.getTxId(), txLog.toString());
                 }
             }
@@ -176,8 +191,41 @@ public class Runtime<T> {
                 // inject Transaction receipt
                 transactionReceiptField.set(contract, txReceipt);
             }
+
+            if (tx.getCoreTransaction() != null && tx.getCoreTransaction().getPayloadType() != null) {
+                Method method = null;
+                switch (tx.getCoreTransaction().getPayloadType()) {
+                    case COMMON:
+                        method = invokeMethod.get("common");
+                        break;
+                    case BONDING:
+                        method = invokeMethod.get("bonding");
+                        break;
+                    case DELEGATING:
+                        method = invokeMethod.get("delegating");
+                        break;
+                    case UNSTAKING:
+                        method = invokeMethod.get("unstaking");
+                        break;
+                    case RECOVER:
+                        method = invokeMethod.get("recover");
+                        break;
+                }
+                if (method != null) {
+                    TransactionReceipt resultReceipt = (TransactionReceipt) method.invoke(contract, tx.getCoreTransaction().getPayload());
+                    if (txReceipt.getStatus() != ExecuteStatus.SUCCESS) {
+                        txReceipt.setStatus(resultReceipt.getStatus());
+                    }
+                } else {
+                    txReceipt.setStatus(ExecuteStatus.ERROR);
+                    JsonObject errorLog = new JsonObject();
+                    errorLog.addProperty("error", "method is not exist");
+                    txReceipt.addLog(errorLog);
+                }
+                return txReceipt;
+            }
             // transaction is multiple method
-            for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
+            for (JsonElement transactionElement : JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 String methodName = txBody.get("method").getAsString().toLowerCase();
                 Method method = invokeMethod.get(methodName);
@@ -245,9 +293,10 @@ public class Runtime<T> {
 
     /**
      * Invoke Method filter
+     *
      * @return Method map (method nams is lower case)
      */
-    private Map<String,Method> getInvokeMethods() {
+    private Map<String, Method> getInvokeMethods() {
         return ContractUtils.contractMethods(contract, InvokeTransction.class);
     }
 
