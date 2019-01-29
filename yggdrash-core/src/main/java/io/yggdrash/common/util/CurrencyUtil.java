@@ -46,10 +46,10 @@ public class CurrencyUtil {
                     return MILLIYEEDType;
                 case 7:
                     return YEEDType;
+                default:
+                    return CELLType;
             }
-            return CELLType;
         }
-
 
         @JsonValue
         public int toValue() {
@@ -57,11 +57,11 @@ public class CurrencyUtil {
         }
     }
 
-    public static BigInteger generateCELL(CurrencyType currencyType, long amount) {
-        return generateCELL(currencyType, new BigInteger(String.valueOf(amount)));
+    public static BigInteger generateCell(CurrencyType currencyType, long amount) {
+        return generateCell(currencyType, new BigInteger(String.valueOf(amount)));
     }
 
-    public static BigInteger generateCELL(CurrencyType currencyType, BigInteger amount) {
+    public static BigInteger generateCell(CurrencyType currencyType, BigInteger amount) {
         BigInteger cell = new BigInteger(amount.toString());
         switch (currencyType) {
             case CELLType:
@@ -78,13 +78,15 @@ public class CurrencyUtil {
                 return cell.multiply(new BigInteger(MILLIYEED));
             case YEEDType:
                 return cell.multiply(new BigInteger(YEED));
+            default:
+                return null;
         }
-
-        return null;
     }
 
-    public static BigInteger generateCurrencyToAnotherCurrency(CurrencyType sourceType, CurrencyType targetType, BigInteger sourceAmount) {
-        BigInteger defaultAmount = generateCELL(sourceType, sourceAmount);
+    public static BigInteger generateCurrencyToAnotherCurrency(CurrencyType sourceType,
+                                                               CurrencyType targetType,
+                                                               BigInteger sourceAmount) {
+        BigInteger defaultAmount = generateCell(sourceType, sourceAmount);
         BigInteger divValue = new BigInteger("1");
 
         switch (targetType) {
@@ -116,12 +118,16 @@ public class CurrencyUtil {
                 divValue = divValue.multiply(new BigInteger(YEED));
                 defaultAmount = defaultAmount.divide(divValue);
                 break;
+            default:
+                break;
         }
         return defaultAmount;
     }
 
-    public static String generateStringToCurrency(CurrencyType sourceType, CurrencyType targetType, BigInteger sourceAmount) {
-        BigInteger defaultAmount = generateCELL(sourceType, sourceAmount);
+    public static String generateStringToCurrency(CurrencyType sourceType,
+                                                  CurrencyType targetType,
+                                                  BigInteger sourceAmount) {
+        BigInteger defaultAmount = generateCell(sourceType, sourceAmount);
 
         String targetAmount = "";
         switch (targetType) {
@@ -145,6 +151,8 @@ public class CurrencyUtil {
                 break;
             case YEEDType:
                 targetAmount = StringUtil.convertStringFloatingPoint(defaultAmount.toString(), 18);
+                break;
+            default:
                 break;
         }
 

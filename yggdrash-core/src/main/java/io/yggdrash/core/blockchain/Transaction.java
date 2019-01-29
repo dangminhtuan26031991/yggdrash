@@ -24,13 +24,6 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.types.TxPayload;
-import io.yggdrash.core.types.enumeration.TxPayloadTypeEnum;
-import io.yggdrash.core.types.tx.TxBonding;
-import io.yggdrash.core.types.tx.TxCommon;
-import io.yggdrash.core.types.tx.TxDelegating;
-import io.yggdrash.core.types.tx.TxRecover;
-import io.yggdrash.core.types.tx.TxUnStaking;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
@@ -55,29 +48,18 @@ public class Transaction implements Cloneable {
     private byte[] signature;
     private TransactionBody body;
 
-    private TxPayloadTypeEnum payloadType;
-    private TxPayload payload;
-
     /**
      * Transaction Constructor.
      *
-     * @param header    transaction header
+     * @param header transaction header
      * @param signature transaction signature
-     * @param body      transaction body
+     * @param body   transaction body
      */
     public Transaction(TransactionHeader header,
                        byte[] signature, TransactionBody body) {
         this.header = header;
         this.signature = signature;
         this.body = body;
-    }
-
-    public Transaction(TransactionHeader header, byte[] signature, TransactionBody body, TxPayloadTypeEnum payloadType, TxPayload payload) {
-        this.header = header;
-        this.signature = signature;
-        this.body = body;
-        this.payloadType = payloadType;
-        this.payload = payload;
     }
 
     /**
@@ -121,7 +103,7 @@ public class Transaction implements Cloneable {
         this.signature = sigBytes;
 
         long bodyLength = this.header.getBodyLength();
-        byte[] bodyBytes = new byte[(int) bodyLength];
+        byte[] bodyBytes = new byte[(int)bodyLength];
         System.arraycopy(txBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
         this.body = new TransactionBody(bodyBytes);
@@ -147,14 +129,6 @@ public class Transaction implements Cloneable {
      */
     public TransactionBody getBody() {
         return this.body;
-    }
-
-    public TxPayloadTypeEnum getPayloadType() {
-        return payloadType;
-    }
-
-    public TxPayload getPayload() {
-        return payload;
     }
 
     /**
@@ -417,34 +391,7 @@ public class Transaction implements Cloneable {
                 protoTransaction.getBody().toStringUtf8()
         );
 
-
-        TxPayloadTypeEnum payloadType = TxPayloadTypeEnum.fromValue(protoTransaction.getPayloadType());
-        TxPayload payload = null;
-        if (payloadType != null) {
-            switch (payloadType) {
-                case COMMON:
-                    payload = new TxCommon();
-                    break;
-                case BONDING:
-                    payload = new TxBonding();
-                    break;
-                case DELEGATING:
-                    payload = new TxDelegating();
-                    break;
-                case UNSTAKING:
-                    payload = new TxUnStaking();
-                    break;
-                case RECOVER:
-                    payload = new TxRecover();
-                    break;
-            }
-            if (payload != null) {
-                payload.mappingProtoToClass(protoTransaction);
-            }
-        }
-
-
-        return new Transaction(txHeader, protoTransaction.getSignature().toByteArray(), txBody, payloadType, payload);
+        return new Transaction(txHeader, protoTransaction.getSignature().toByteArray(), txBody);
 
     }
 }

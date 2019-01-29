@@ -7,7 +7,8 @@ public enum PrefixKeyEnum {
     GENESIS("genesis"),
     GOVERNANCE("g-"),
     ACCOUNT("ac-"),
-    VALIDATOR("v-");
+    PROPOSE_VALIDATORS("pv-"),
+    VALIDATORS("vl-");
 
     private String value;
 
@@ -18,14 +19,19 @@ public enum PrefixKeyEnum {
     @JsonCreator
     public static PrefixKeyEnum fromValue(String value) {
         switch (value) {
-            case "g-":
+            case "genesis":
                 return GENESIS;
+            case "g-":
+                return GOVERNANCE;
             case "ac-":
                 return ACCOUNT;
-            case "v-":
-                return VALIDATOR;
+            case "rv-":
+                return PROPOSE_VALIDATORS;
+            case "vl-":
+                return VALIDATORS;
+            default:
+                return null;
         }
-        return null;
     }
 
     @JsonValue

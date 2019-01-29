@@ -6,8 +6,6 @@ import io.yggdrash.core.types.enumeration.SerialEnum;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigInteger;
-import java.util.Map;
 
 @Data
 public class Validator implements Serializable, Comparable<Validator> {
@@ -15,30 +13,29 @@ public class Validator implements Serializable, Comparable<Validator> {
 
     private String addr;
 
-    //bonding + delegating
-    private BigInteger totalStakingBalance;
-    private BigInteger totalDelegatingBalance;
-    private Map<String, BigInteger> delegating;
+    private ProposeValidatorSet.Votable votedHistory;
 
     private boolean isFreezing;
     private FreezingType freezingType;
     private long freezingBlockHeight;
     private int disconnectCnt;
 
-    private String name;
-    private String desc;
-    private String url;
-    private String logUrl;
-    private String lat;
-    private String lon;
+    public Validator() {
+
+    }
+
+    public Validator(String addr) {
+        this.addr = addr;
+    }
+
+    public Validator(String addr, ProposeValidatorSet.Votable votedHistory) {
+        this.addr = addr;
+        this.votedHistory = votedHistory;
+    }
 
     @Override
     public int compareTo(Validator o) {
-        int val = totalStakingBalance.compareTo(o.totalStakingBalance);
-        if (val == 0) {
-            val = addr.compareTo(o.addr);
-        }
-        return val;
+        return addr.compareTo(o.addr);
     }
 
     public enum FreezingType {
@@ -57,8 +54,9 @@ public class Validator implements Serializable, Comparable<Validator> {
                     return BYZANTINE;
                 case 2:
                     return DISCONNECTED;
+                default:
+                    return null;
             }
-            return null;
         }
 
         @JsonValue

@@ -191,39 +191,6 @@ public class Runtime<T> {
                 // inject Transaction receipt
                 transactionReceiptField.set(contract, txReceipt);
             }
-
-            if (tx.getCoreTransaction() != null && tx.getCoreTransaction().getPayloadType() != null) {
-                Method method = null;
-                switch (tx.getCoreTransaction().getPayloadType()) {
-                    case COMMON:
-                        method = invokeMethod.get("common");
-                        break;
-                    case BONDING:
-                        method = invokeMethod.get("bonding");
-                        break;
-                    case DELEGATING:
-                        method = invokeMethod.get("delegating");
-                        break;
-                    case UNSTAKING:
-                        method = invokeMethod.get("unstaking");
-                        break;
-                    case RECOVER:
-                        method = invokeMethod.get("recover");
-                        break;
-                }
-                if (method != null) {
-                    TransactionReceipt resultReceipt = (TransactionReceipt) method.invoke(contract, tx.getCoreTransaction().getPayload());
-                    if (txReceipt.getStatus() != ExecuteStatus.SUCCESS) {
-                        txReceipt.setStatus(resultReceipt.getStatus());
-                    }
-                } else {
-                    txReceipt.setStatus(ExecuteStatus.ERROR);
-                    JsonObject errorLog = new JsonObject();
-                    errorLog.addProperty("error", "method is not exist");
-                    txReceipt.addLog(errorLog);
-                }
-                return txReceipt;
-            }
             // transaction is multiple method
             for (JsonElement transactionElement : JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
